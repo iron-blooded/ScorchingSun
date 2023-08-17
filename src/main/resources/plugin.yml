@@ -1,0 +1,5 @@
+name: ScorchingSun
+version: '${project.version}'
+main: org.hg.scorchingsun.ScorchingSun
+api-version: '1.18'
+authors: [Filabdict]
