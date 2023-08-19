@@ -13,6 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.hg.scorchingsun.process.editTemp;
 
 import java.util.HashMap;
 
@@ -101,83 +102,17 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
             return;
         }
         World world = player.getWorld();
-        double biome_temp = world.getTemperature(player.getLocation().getBlockX(), player.getLocation().getBlockY(), player.getLocation().getBlockZ());
         double need_temp = 0;
-        if (biome_temp <= -1) {
-            //Температура пиздецки холодных биомов
-            need_temp = -40;
-        } else if (biome_temp <= 0) {
-            //Температура просто холодных биомов
-            need_temp = -15;
-        } else if (biome_temp < 1) {
-            //Температура теплых биомов
-            need_temp = 15;
-        } else {
-            //Температура пиздецки жарких биомов
-            need_temp = 35;
+        need_temp += editTemp.biomeTemp(player.getLocation());
+        need_temp += editTemp.sunTemp(player.getLocation());
+        need_temp = editTemp.hazerTemp(player.getLocation(), need_temp);
+        if (need_temp == 0){
+            need_temp = editTemp.waterTemp(player.getLocation(), need_temp);
         }
-        if (world.getTime() < 12000 && !world.hasStorm() && !world.isThundering()) {
-            // Температура солнца
-            double coof = RoomExitFinder.findExitSteps(player.getLocation(), 7,
-                    location -> location.getBlock().getType().isAir(),
-                    location -> location.getWorld().getHighestBlockYAt(location) <= location.getY());
-            need_temp += 15 * (1 / (coof + 1));
-        }
-        if (player.getLocation().getBlock().getType() == Material.WATER || player.getLocation().getBlock().getType() == Material.BUBBLE_COLUMN) {
-            //Температура воды
-            double coof = RoomExitFinder.findExitSteps(player.getLocation(), 4,
-                    location -> (location.getBlock().getType() == Material.WATER || location.getBlock().getType() == Material.BUBBLE_COLUMN),
-                    location -> location.getBlock().getType() == Material.MAGMA_BLOCK|| location.getBlock().getType() == Material.BUBBLE_COLUMN);
-            if (coof >= 0 && coof <= 1000) {
-                //Температура гейзера
-                need_temp = Math.max(100 * (1/ (coof + 1)), need_temp);
-            }
-            else {
-                need_temp -= 15;
-            }
-        }
-        if (player.getLocation().getBlock().getType() == Material.POWDER_SNOW) {
-            //Температура рыхлого снега
-            need_temp = Math.min(-5, need_temp);
-        }
-        if (true) {
-            //Температура костров, огня и печей
-            double coof = RoomExitFinder.findExitSteps(player.getLocation(), 4,
-                    location -> location.getBlock().getType().isAir(),
-                    location -> {
-                if (location.getBlock().getType() == Material.FIRE){return true;}
-                if (location.getBlock().getType().name().contains("CAMPFIRE")){return true;}
-                if (location.getBlock().getType() == Material.FURNACE || location.getBlock().getType() == Material.BLAST_FURNACE || location.getBlock().getType() == Material.SMOKER){
-                    if (location.getBlock().getState() instanceof Furnace) {
-                        return ((Furnace) location.getBlock().getState()).getCookTime() > 0;
-                    } else if (location.getBlock().getState() instanceof Smoker) {
-                        return ((Smoker) location.getBlock().getState()).getCookTime() > 0;
-                    }
-                }
-                return false;});
-            need_temp = Math.max(need_temp, 100*(1.5/(coof+1)));
-
-        }
-        if (true){
-            //Кожанка согревает
-            int i = 0;
-            for (ItemStack armorPiece : player.getInventory().getArmorContents()) {
-                if (armorPiece != null && armorPiece.getType() != null && (armorPiece.getType() == Material.LEATHER_HELMET ||
-                        armorPiece.getType() == Material.LEATHER_CHESTPLATE ||
-                        armorPiece.getType() == Material.LEATHER_LEGGINGS ||
-                        armorPiece.getType() == Material.LEATHER_BOOTS)) {
-                    i++;
-                }
-            }
-            need_temp += 5*i;
-        }
-        if (true){
-            //Лава горячая
-            double coof = RoomExitFinder.findExitSteps(player.getLocation(), 5,
-                    location -> location.getBlock().getType().isAir(),
-                    location -> location.getBlock().getType() == Material.LAVA);
-            need_temp = Math.max(need_temp, 200 * (1/(coof+1)));
-        }
+        need_temp = editTemp.powderSnowTemp(player.getLocation(), need_temp);
+        need_temp = editTemp.fireTemp(player.getLocation(), need_temp);
+        need_temp = editTemp.armorEffectTemp(player, need_temp);
+        need_temp = editTemp.lavaTemp(player.getLocation(), need_temp);
         need_temp = Math.min(max_temp, need_temp);
         need_temp = Math.max(min_temp, need_temp);
         finalTemp(player, need_temp);
