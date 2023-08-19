@@ -12,12 +12,13 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
+import java.util.function.Function;
 
 public class RoomExitFinder extends JavaPlugin {
 
-    public static final int MAX_DEPTH = 7;
+//    public static final int MAX_DEPTH = 7;
 
-    public static int findExitSteps(Location startLocation) {
+    public static int findExitSteps(Location startLocation, int MAX_DEPTH, Function<Location, Boolean> isWay, Function<Location, Boolean> isExit) {
         World world = startLocation.getWorld();
         Set<Location> visited = new HashSet<>();
         Stack<Location> stack = new Stack<>();
@@ -25,24 +26,24 @@ public class RoomExitFinder extends JavaPlugin {
         int steps = 0;
         while (!stack.isEmpty() && steps < MAX_DEPTH) {
             for (Location location: (Stack<Location>) stack.clone()){
-                if (isExit(location)){
+                if (isExit.apply(location)){
                     return steps;
                 }
                 visited.add(location);
                 stack.remove(location);
-                addBlocksAround(location, stack, visited);
+                addBlocksAround(location, stack, visited, isWay);
             }
             steps++;
         }
 
-        return MAX_DEPTH*-1;
+        return 9999999;
     }
-    private static void addBlocksAround(Location location, Stack<Location> stack, Set<Location> visited){
+    private static void addBlocksAround(Location location, Stack<Location> stack, Set<Location> visited, Function<Location, Boolean> isWay){
         for (int x = -1; x <= 1; x+=2) {
             Location new_location = location.clone();
             new_location = new_location.add(x, 0, 0);
             if (!visited.contains(new_location)
-                    && isAir(new_location)){
+                    && isAir(new_location, isWay)){
                 stack.push(new_location);
             }
         }
@@ -50,7 +51,7 @@ public class RoomExitFinder extends JavaPlugin {
             Location new_location = location.clone();
             new_location = new_location.add(0, y, 0);
             if (!visited.contains(new_location)
-                    && isAir(new_location)){
+                    && isAir(new_location, isWay)){
                 stack.push(new_location);
             }
         }
@@ -58,14 +59,14 @@ public class RoomExitFinder extends JavaPlugin {
             Location new_location = location.clone();
             new_location = new_location.add(0, 0, z);
             if (!visited.contains(new_location)
-                    && isAir(new_location)){
+                    && isAir(new_location, isWay)){
                 stack.push(new_location);
             }
         }
     }
-    private static boolean isAir(Location location){
+    private static boolean isAir(Location location, Function<Location, Boolean> isWay){
         Material material = location.getBlock().getType();
-        if (material.isAir()){
+        if (isWay.apply(location)){
             return true;
         }
         else if (material.name().contains("_DOOR")){
@@ -81,8 +82,8 @@ public class RoomExitFinder extends JavaPlugin {
         }
         return true;
     }
-    private static boolean isExit(Location location){
-        return location.getWorld().getHighestBlockYAt(location) <= location.getY();
-    }
+//    private static boolean isExit(Location location){
+//        return location.getWorld().getHighestBlockYAt(location) <= location.getY();
+//    }
 
 }
