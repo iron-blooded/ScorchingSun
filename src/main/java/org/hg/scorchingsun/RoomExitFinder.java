@@ -31,19 +31,19 @@ public class RoomExitFinder extends JavaPlugin {
                 }
                 visited.add(location);
                 stack.remove(location);
-                addBlocksAround(location, stack, visited, isWay);
+                addBlocksAround(location, stack, visited, isWay, isExit);
             }
             steps++;
         }
 
         return 9999999;
     }
-    private static void addBlocksAround(Location location, Stack<Location> stack, Set<Location> visited, Function<Location, Boolean> isWay){
+    private static void addBlocksAround(Location location, Stack<Location> stack, Set<Location> visited, Function<Location, Boolean> isWay, Function<Location, Boolean> isExit){
         for (int x = -1; x <= 1; x+=2) {
             Location new_location = location.clone();
             new_location = new_location.add(x, 0, 0);
             if (!visited.contains(new_location)
-                    && isAir(new_location, isWay)){
+                    && isAir(new_location, isWay) || isExit.apply(new_location)){
                 stack.push(new_location);
             }
         }
@@ -51,7 +51,7 @@ public class RoomExitFinder extends JavaPlugin {
             Location new_location = location.clone();
             new_location = new_location.add(0, y, 0);
             if (!visited.contains(new_location)
-                    && isAir(new_location, isWay)){
+                    && isAir(new_location, isWay) || isExit.apply(new_location)){
                 stack.push(new_location);
             }
         }
@@ -59,7 +59,7 @@ public class RoomExitFinder extends JavaPlugin {
             Location new_location = location.clone();
             new_location = new_location.add(0, 0, z);
             if (!visited.contains(new_location)
-                    && isAir(new_location, isWay)){
+                    && isAir(new_location, isWay) || isExit.apply(new_location)){
                 stack.push(new_location);
             }
         }

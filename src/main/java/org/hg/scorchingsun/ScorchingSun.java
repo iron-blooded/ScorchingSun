@@ -3,14 +3,22 @@ package org.hg.scorchingsun;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.block.Furnace;
 import org.bukkit.block.Smoker;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
@@ -20,6 +28,7 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
     public static double min_temp = -125.0;
     public static double max_temp = 300.0;
     public static double crit_firing_temp = 100.0;
+    public static double toshnota = 50.0;
     public static double crit_frizing_temp = 0.0;
 
     @Override
@@ -30,7 +39,7 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
             @Override
             public void run() {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (player.hasPermission("Sunboy")) {
+                    if (player.hasPermission("sunboy")) {
                         processFire(player);
                     }
                 }
@@ -91,7 +100,6 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
 
     private void display(Player player, String text) {
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ChatColor.YELLOW + text));
-//        player.sendTitle("", text, 0, 20, 0);
     }
 
     public void processFire(Player player) {
@@ -121,17 +129,20 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
                     location -> location.getWorld().getHighestBlockYAt(location) <= location.getY());
             need_temp += 15 * (1 / (coof + 1));
         }
-        if (player.getLocation().getBlock().getType() == Material.WATER) {
+        if (player.getLocation().getBlock().getType() == Material.WATER || player.getLocation().getBlock().getType() == Material.BUBBLE_COLUMN) {
             //Температура воды
-            need_temp -= 15;
             double coof = RoomExitFinder.findExitSteps(player.getLocation(), 4,
-                    location -> location.getBlock().getType() == Material.WATER,
-                    location -> ((Waterlogged) player.getLocation().getBlock().getBlockData()).isWaterlogged());
+                    location -> (location.getBlock().getType() == Material.WATER || location.getBlock().getType() == Material.BUBBLE_COLUMN),
+                    location -> location.getBlock().getType() == Material.MAGMA_BLOCK);
             if (coof >= 0) {
                 //Температура гейзера
-                need_temp += 100 / (coof + 1);
+                need_temp = Math.max(100 * (1/ (coof + 1)), need_temp);
+            }
+            else {
+                need_temp -= 15;
             }
         }
+
         if (player.getLocation().getBlock().getType() == Material.POWDER_SNOW) {
             //Температура рыхлого снега
             need_temp = Math.min(-5, need_temp);
@@ -142,7 +153,7 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
                     location -> location.getBlock().getType().isAir(),
                     location -> {
                 if (location.getBlock().getType() == Material.FIRE){return true;}
-                if (location.getBlock().getType().name().contains("CAMPFIRE"))
+                if (location.getBlock().getType().name().contains("CAMPFIRE")){return true;}
                 if (location.getBlock().getType() == Material.FURNACE || location.getBlock().getType() == Material.BLAST_FURNACE || location.getBlock().getType() == Material.SMOKER){
                     if (location.getBlock().getState() instanceof Furnace) {
                         return ((Furnace) location.getBlock().getState()).getCookTime() > 0;
@@ -154,6 +165,26 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
             need_temp = Math.max(need_temp, 100*(1.5/(coof+1)));
 
         }
+        if (true){
+            //Кожанка согревает
+            int i = 0;
+            for (ItemStack armorPiece : player.getInventory().getArmorContents()) {
+                if (armorPiece != null && armorPiece.getType() != null && (armorPiece.getType() == Material.LEATHER_HELMET ||
+                        armorPiece.getType() == Material.LEATHER_CHESTPLATE ||
+                        armorPiece.getType() == Material.LEATHER_LEGGINGS ||
+                        armorPiece.getType() == Material.LEATHER_BOOTS)) {
+                    i++;
+                }
+            }
+            need_temp += 5*i;
+        }
+        if (true){
+            //Лава горячая
+            double coof = RoomExitFinder.findExitSteps(player.getLocation(), 5,
+                    location -> location.getBlock().getType().isAir(),
+                    location -> location.getBlock().getType() == Material.LAVA);
+            need_temp = Math.max(need_temp, 200 * (1/(coof+1)));
+        }
         need_temp = Math.min(max_temp, need_temp);
         need_temp = Math.max(min_temp, need_temp);
         finalTemp(player, need_temp);
@@ -164,18 +195,27 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
             player.setFreezeTicks(20*4);
         } else if (getTemp(player) < crit_frizing_temp-20 && player.getFreezeTicks() < 20*10) {
             player.setFreezeTicks(20*10);
+        } else if (getTemp(player) >= toshnota) {
+            if (Math.random() <= 0.1) {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 20 * 2, 4, false, false));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20 * 2, 4, false, false));
+            }
         }
     }
 
     @EventHandler
     public void onPlayerItemConsume(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
-        if (event.getItem().getType() == Material.POTION) {
+        if (event.getItem().getType() == Material.POTION && player.getGameMode() == GameMode.SURVIVAL) {
             double temp = crit_firing_temp / 5;
             if (getTemp(player)- temp > 0) {
                 minusTemp(player, temp);
             }
         }
+    }
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        temp_players.put(((Player) event.getEntity()).getName(), 36.6);
     }
 
     @Override
