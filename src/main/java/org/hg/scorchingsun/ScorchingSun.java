@@ -133,8 +133,8 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
             //Температура воды
             double coof = RoomExitFinder.findExitSteps(player.getLocation(), 4,
                     location -> (location.getBlock().getType() == Material.WATER || location.getBlock().getType() == Material.BUBBLE_COLUMN),
-                    location -> location.getBlock().getType() == Material.MAGMA_BLOCK);
-            if (coof >= 0) {
+                    location -> location.getBlock().getType() == Material.MAGMA_BLOCK|| location.getBlock().getType() == Material.BUBBLE_COLUMN);
+            if (coof >= 0 && coof <= 1000) {
                 //Температура гейзера
                 need_temp = Math.max(100 * (1/ (coof + 1)), need_temp);
             }
