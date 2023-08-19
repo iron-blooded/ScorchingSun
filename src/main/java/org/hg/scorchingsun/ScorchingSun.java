@@ -1,21 +1,14 @@
 package org.hg.scorchingsun;
 
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
-import org.bukkit.block.Block;
 import org.bukkit.block.Furnace;
 import org.bukkit.block.Smoker;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -30,6 +23,7 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
     public static double crit_firing_temp = 100.0;
     public static double toshnota = 50.0;
     public static double crit_frizing_temp = 0.0;
+    public static double comfort_temp = 36.6;
 
     @Override
     public void onEnable() {
@@ -40,7 +34,7 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
             public void run() {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     if (player.hasPermission("sunboy")) {
-                        processFire(player);
+                        process(player);
                     }
                 }
             }
@@ -88,7 +82,7 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
         return getTemp(player, false);
     }
     private double getTemp(Player player, boolean round) {
-        double temp = 36.6;
+        double temp = comfort_temp;
         if (temp_players.containsKey(player.getName())) {
             temp = temp_players.get(player.getName());
         }
@@ -99,10 +93,10 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
     }
 
     private void display(Player player, String text) {
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ChatColor.YELLOW + text));
+//        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ChatColor.YELLOW + text));
     }
 
-    public void processFire(Player player) {
+    public void process(Player player) {
         if (player.getGameMode() != GameMode.SURVIVAL) {
             return;
         }
@@ -122,7 +116,7 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
             //Температура пиздецки жарких биомов
             need_temp = 35;
         }
-        if (world.getTime() < 12000) {
+        if (world.getTime() < 12000 && !world.hasStorm() && !world.isThundering()) {
             // Температура солнца
             double coof = RoomExitFinder.findExitSteps(player.getLocation(), 7,
                     location -> location.getBlock().getType().isAir(),
@@ -142,7 +136,6 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
                 need_temp -= 15;
             }
         }
-
         if (player.getLocation().getBlock().getType() == Material.POWDER_SNOW) {
             //Температура рыхлого снега
             need_temp = Math.min(-5, need_temp);
@@ -215,7 +208,7 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
     }
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        temp_players.put(((Player) event.getEntity()).getName(), 36.6);
+        temp_players.put(((Player) event.getEntity()).getName(), comfort_temp);
     }
 
     @Override
