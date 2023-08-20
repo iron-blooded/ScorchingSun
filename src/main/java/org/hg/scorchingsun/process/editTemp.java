@@ -178,7 +178,7 @@ public class editTemp {
         }
         return temp;
     }
-    public static double soulCampfireTemp(Location location, double temp){
+    public static double soulCampfireTemp(Location location){
         double coof = RoomExitFinder.findExitSteps(location, 3,
                 l -> l.getBlock().getType().isAir(),
                 l -> l.getBlock().getType() == Material.SOUL_CAMPFIRE);
@@ -186,7 +186,7 @@ public class editTemp {
         if (coof > 0.0001) {
             return -15 *coof;
         }
-        return temp;
+        return 0;
     }
     public static double permPlayerTemp(Player player, double temp) {
         return temp+getPermissionNumber("temperaturetrain.", player);
