@@ -1,6 +1,7 @@
 package org.hg.scorchingsun.process;
 
 import org.bukkit.*;
+import org.bukkit.block.Campfire;
 import org.bukkit.block.Furnace;
 import org.bukkit.block.Smoker;
 import org.bukkit.enchantments.Enchantment;
@@ -93,7 +94,7 @@ public class editTemp {
                     }
                     return false;
                 });
-        coof = (1.5 / (coof + 1));
+        coof = (1 / (coof + 1));
         if (coof > 0.0001) {
             temp = Math.max(temp, 100 * coof);
         }
@@ -144,7 +145,7 @@ public class editTemp {
                 l -> l.getBlock().getType() == Material.TORCH);
         coof = (1 / (coof + 1));
         if (coof > 0.0001) {
-            temp = Math.max(temp, 5 * coof);
+            temp +=  5 * coof;
         }
         return temp;
     }
@@ -174,6 +175,16 @@ public class editTemp {
         }
         if (tags.contains("Cold+")) {
             temp -= 30;
+        }
+        return temp;
+    }
+    public static double soulCampfireTemp(Location location, double temp){
+        double coof = RoomExitFinder.findExitSteps(location, 3,
+                l -> l.getBlock().getType().isAir(),
+                l -> l.getBlock().getType() == Material.SOUL_CAMPFIRE);
+        coof = (1 / (coof + 1));
+        if (coof > 0.0001) {
+            temp -= 15 *coof;
         }
         return temp;
     }

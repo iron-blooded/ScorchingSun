@@ -12,6 +12,7 @@ public class EditTemp {
         Location location = player.getLocation();
         double need_temp = 0;
         need_temp += editTemp.biomeTemp(location);
+        need_temp = editTemp.soulCampfireTemp(location, need_temp);
         need_temp = editTemp.iceSnowTemp(location, need_temp);
         need_temp = editTemp.lavaTemp(location, need_temp);
         need_temp += editTemp.sunTemp(location);
