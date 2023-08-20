@@ -184,7 +184,7 @@ public class editTemp {
                 l -> l.getBlock().getType() == Material.SOUL_CAMPFIRE);
         coof = (1 / (coof + 1));
         if (coof > 0.0001) {
-            temp -= 15 *coof;
+            return -15 *coof;
         }
         return temp;
     }
