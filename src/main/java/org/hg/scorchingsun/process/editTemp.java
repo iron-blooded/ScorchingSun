@@ -1,6 +1,9 @@
 package org.hg.scorchingsun.process;
 
-import org.bukkit.*;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.block.Furnace;
 import org.bukkit.block.Smoker;
 import org.bukkit.enchantments.Enchantment;
@@ -9,6 +12,8 @@ import org.bukkit.inventory.ItemStack;
 import org.hg.scorchingsun.RoomExitFinder;
 import org.hg.scorchingsun.enchants.HeatAccumulationEnchantment;
 import org.hg.scorchingsun.enchants.HeatDissipationEnchantment;
+
+import java.util.Set;
 
 public class editTemp {
     public static double biomeTemp(Location location) {
@@ -94,23 +99,23 @@ public class editTemp {
     public static double armorEffectTemp(Player player, double temp) {
         int i = 0;
         for (ItemStack armorPiece : player.getInventory().getArmorContents()) {
-            if (armorPiece == null || armorPiece.getType() == null){
+            if (armorPiece == null || armorPiece.getType() == null) {
                 continue;
             }
             if (armorPiece.getType() == Material.LEATHER_HELMET ||
                     armorPiece.getType() == Material.LEATHER_CHESTPLATE ||
                     armorPiece.getType() == Material.LEATHER_LEGGINGS ||
                     armorPiece.getType() == Material.LEATHER_BOOTS) {
-                i+=5;
+                i += 5;
             }
-            if (armorPiece.getEnchantments()!=null){
-                if (armorPiece.getEnchantments().containsKey(Enchantment.getByKey(NamespacedKey.minecraft(HeatAccumulationEnchantment.getEchName())))){
+            if (armorPiece.getEnchantments() != null) {
+                if (armorPiece.getEnchantments().containsKey(Enchantment.getByKey(NamespacedKey.minecraft(HeatAccumulationEnchantment.getEchName())))) {
                     int level = armorPiece.getEnchantmentLevel(Enchantment.getByKey(NamespacedKey.minecraft(HeatAccumulationEnchantment.getEchName())));
-                    i+=5*level;
+                    i += 5 * level;
                 }
-                if (armorPiece.getEnchantments().containsKey(Enchantment.getByKey(NamespacedKey.minecraft(HeatDissipationEnchantment.getEchName())))){
+                if (armorPiece.getEnchantments().containsKey(Enchantment.getByKey(NamespacedKey.minecraft(HeatDissipationEnchantment.getEchName())))) {
                     int level = armorPiece.getEnchantmentLevel(Enchantment.getByKey(NamespacedKey.minecraft(HeatDissipationEnchantment.getEchName())));
-                    i-=5*level;
+                    i -= 5 * level;
                 }
             }
         }
@@ -125,11 +130,42 @@ public class editTemp {
         temp = Math.max(temp, 200 * (1 / (coof + 1)));
         return temp;
     }
-    public static double torchTemp(Location location, double temp){
+
+    public static double torchTemp(Location location, double temp) {
         double coof = RoomExitFinder.findExitSteps(location, 3,
                 l -> l.getBlock().getType().isAir(),
                 l -> l.getBlock().getType() == Material.TORCH);
         temp = Math.max(temp, 5 * (1 / (coof + 1)));
         return temp;
     }
+
+    public static double tagsPlayerTemp(Player player, double temp) {
+        Set<String> tags = player.getScoreboardTags();
+        if (tags.contains("Warm1")) {
+            temp += 5;
+        }
+        if (tags.contains("Warm2")) {
+            temp += 10;
+        }
+        if (tags.contains("Warm3")) {
+            temp += 15;
+        }
+        if (tags.contains("Warm+")) {
+            temp += 30;
+        }
+        if (tags.contains("Cold1")) {
+            temp -= 5;
+        }
+        if (tags.contains("Cold2")) {
+            temp -= 10;
+        }
+        if (tags.contains("Cold3")) {
+            temp -= 15;
+        }
+        if (tags.contains("Cold+")) {
+            temp -= 30;
+        }
+        return temp;
+    }
+
 }

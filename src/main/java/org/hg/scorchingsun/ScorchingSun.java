@@ -115,9 +115,10 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
         need_temp = editTemp.fireTemp(location, need_temp);
         need_temp = editTemp.armorEffectTemp(player, need_temp);
         need_temp = editTemp.lavaTemp(location, need_temp);
+        need_temp = editTemp.torchTemp(location, need_temp);
+        need_temp = editTemp.tagsPlayerTemp(player, need_temp);
         need_temp = Math.min(max_temp, need_temp);
         need_temp = Math.max(min_temp, need_temp);
-        need_temp = editTemp.torchTemp(location, need_temp);
         finalTemp(player, need_temp);
         display(player, need_temp + "°");
         if (getTemp(player) >= crit_firing_temp) {
