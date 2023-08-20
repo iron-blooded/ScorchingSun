@@ -167,5 +167,18 @@ public class editTemp {
         }
         return temp;
     }
+    public static double permPlayerTemp(Player player, double temp) {
+        return temp+getPermissionNumber("temperaturetrain.", player);
+    }
+
+    private static int getPermissionNumber(String permission, Player player) {
+        for (int i = 10; i >= -10; i--) {
+            String perm = permission + i;
+            if (player.hasPermission(perm)) {
+                return i;
+            }
+        }
+        return 0; // если игрок не имеет никаких пермишенов с данным префиксом
+    }
 
 }

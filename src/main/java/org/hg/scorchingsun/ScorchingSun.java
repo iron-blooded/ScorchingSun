@@ -22,6 +22,8 @@ import org.hg.scorchingsun.process.editTemp;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 
+import static org.hg.scorchingsun.EditTemp.process;
+
 public final class ScorchingSun extends JavaPlugin implements Listener {
     private static final HashMap<String, Double> temp_players = new HashMap<>();
     public static double min_temp = -125.0;
@@ -56,7 +58,7 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
         }.runTaskTimer(this, 0, 20); // 20 тиков = 1 секунда
     }
 
-    private void finalTemp(Player player, double temp) {
+    public static void finalTemp(Player player, double temp) {
         double current_temp = getTemp(player);
         int i = 1;
         if (temp < current_temp) {
@@ -73,17 +75,17 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
         }
         temp_players.put(player.getName(), final_temp);
     }
-    private void minusTemp(Player player, double minus) {
+    public static void minusTemp(Player player, double minus) {
         double temp = getTemp(player);
         temp -= minus;
         temp = Math.max(temp, min_temp);
         temp_players.put(player.getName(), temp);
     }
 
-    private double getTemp(Player player) {
+    public static double getTemp(Player player) {
         return getTemp(player, false);
     }
-    private double getTemp(Player player, boolean round) {
+    public static double getTemp(Player player, boolean round) {
         double temp = comfort_temp;
         if (temp_players.containsKey(player.getName())) {
             temp = temp_players.get(player.getName());
@@ -94,46 +96,6 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
         return temp;
     }
 
-    private void display(Player player, String text) {
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ChatColor.YELLOW + text));
-    }
-
-    public void process(Player player) {
-        if (player.getGameMode() != GameMode.SURVIVAL) {
-            return;
-        }
-        World world = player.getWorld();
-        Location location = player.getLocation();
-        double need_temp = 0;
-        need_temp += editTemp.biomeTemp(location);
-        need_temp += editTemp.sunTemp(location);
-        need_temp = editTemp.hazerTemp(location, need_temp);
-        if (need_temp == 0){
-            need_temp = editTemp.waterTemp(location, need_temp);
-        }
-        need_temp = editTemp.powderSnowTemp(location, need_temp);
-        need_temp = editTemp.fireTemp(location, need_temp);
-        need_temp = editTemp.armorEffectTemp(player, need_temp);
-        need_temp = editTemp.lavaTemp(location, need_temp);
-        need_temp = editTemp.torchTemp(location, need_temp);
-        need_temp = editTemp.tagsPlayerTemp(player, need_temp);
-        need_temp = Math.min(max_temp, need_temp);
-        need_temp = Math.max(min_temp, need_temp);
-        finalTemp(player, need_temp);
-        display(player, need_temp + "°");
-        if (getTemp(player) >= crit_firing_temp) {
-            player.setFireTicks(20 * 3);
-        } else if (getTemp(player) < crit_frizing_temp && player.getFreezeTicks() < 20*4) {
-            player.setFreezeTicks(20*4);
-        } else if (getTemp(player) < crit_frizing_temp-20 && player.getFreezeTicks() < 20*10) {
-            player.setFreezeTicks(20*10);
-        } else if (getTemp(player) >= toshnota) {
-            if (Math.random() <= 0.1) {
-                player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 20 * 2, 4, false, false));
-                player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20 * 2, 4, false, false));
-            }
-        }
-    }
 
     @EventHandler
     public void onPlayerItemConsume(PlayerItemConsumeEvent event) {
