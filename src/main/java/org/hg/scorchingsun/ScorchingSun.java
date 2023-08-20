@@ -9,9 +9,13 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -22,6 +26,7 @@ import org.hg.scorchingsun.process.editTemp;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 
+import static org.hg.scorchingsun.EditTemp.ambientTemp;
 import static org.hg.scorchingsun.EditTemp.process;
 
 public final class ScorchingSun extends JavaPlugin implements Listener {
@@ -57,6 +62,16 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
             }
         }.runTaskTimer(this, 0, 20); // 20 тиков = 1 секунда
     }
+    @Override
+    public void onDisable() {
+        // Plugin shutdown logic
+        try {
+            Enchantment.stopAcceptingRegistrations();
+        }catch (Exception e){}
+    }
+    public static double round(double i){
+        return ((double) ((int) (i * 10)) / 10);
+    }
 
     public static void finalTemp(Player player, double temp) {
         double current_temp = getTemp(player);
@@ -91,11 +106,13 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
             temp = temp_players.get(player.getName());
         }
         if (round) {
-            temp = ((double) ((int) (temp * 10)) / 10);
+            temp = round(temp);
         }
         return temp;
     }
-
+    public static void display(Player player, String text) {
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ChatColor.YELLOW + text));
+    }
 
     @EventHandler
     public void onPlayerItemConsume(PlayerItemConsumeEvent event) {
@@ -111,12 +128,38 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
     public void onPlayerDeath(PlayerDeathEvent event) {
         temp_players.put(event.getEntity().getName(), comfort_temp);
     }
-
-    @Override
-    public void onDisable() {
-        // Plugin shutdown logic
+    @EventHandler
+    public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+        Player player = event.getPlayer();
+        if (event.getRightClicked() instanceof Player) {
+            // Игрок нажал правой кнопкой на другого игрока
+            Player clickedPlayer = (Player) event.getRightClicked();
+            String name_item = null;
+            try {
+                name_item = player.getInventory().getItemInMainHand().getItemMeta().getDisplayName();
+            } catch (Exception e){
+                return;
+            }
+            if (name_item!=null && name_item.contains(ChatColor.COLOR_CHAR+"") && (name_item.contains("АОС") || name_item.contains("Термометр"))){
+                display(player, "Температура "+clickedPlayer.getName()+": "+getTemp(clickedPlayer, true)+"°");
+            }
+        }
+    }
+    @EventHandler
+    public void onPlayerInteractEntity(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        String name_item = null;
         try {
-            Enchantment.stopAcceptingRegistrations();
-        }catch (Exception e){}
+            name_item = player.getInventory().getItemInMainHand().getItemMeta().getDisplayName();
+        } catch (Exception e){
+            return;
+        }
+        if (name_item!=null && name_item.contains(ChatColor.COLOR_CHAR+"") && (name_item.contains("АОС") || name_item.contains("Термометр"))){
+            if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                display(player, "Ваша температура: "+getTemp(player, true)+"°");
+            } else if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK){
+                display(player, "Финальная температура: "+round(ambientTemp(player))+"°");
+            }
+        }
     }
 }

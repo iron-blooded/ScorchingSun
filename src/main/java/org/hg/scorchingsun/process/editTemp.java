@@ -1,9 +1,6 @@
 package org.hg.scorchingsun.process;
 
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Furnace;
 import org.bukkit.block.Smoker;
 import org.bukkit.enchantments.Enchantment;
@@ -38,9 +35,9 @@ public class editTemp {
         World world = location.getWorld();
         if (world.getTime() < 12000 && !world.hasStorm() && !world.isThundering()) {
             // Температура солнца
-            double coof = RoomExitFinder.findExitSteps(location, 7,
+            double coof = RoomExitFinder.findExitSteps(location, 5,
                     l -> l.getBlock().getType().isAir(),
-                    l -> l.getWorld().getHighestBlockYAt(location) <= location.getY());
+                    l -> l.getWorld().getHighestBlockYAt(l) <= l.getY());
             return 15 * (1 / (coof + 1));
         }
         return 0;
@@ -66,9 +63,13 @@ public class editTemp {
         return temp;
     }
 
-    public static double powderSnowTemp(Location location, double temp) {
-        if (location.getBlock().getType() == Material.POWDER_SNOW) {
-            return Math.min(-5, temp);
+    public static double iceSnowTemp(Location location, double temp) {
+        double coof = RoomExitFinder.findExitSteps(location, 3,
+                l -> l.getBlock().getType().isAir(),
+                l -> l.getBlock().getType() == Material.POWDER_SNOW || l.getBlock().getType().name().contains("ICE"));
+        coof = (1 / (coof + 1));
+        if (coof > 0.0001){
+            temp = Math.min(temp, -5 * coof);
         }
         return temp;
     }
@@ -92,7 +93,10 @@ public class editTemp {
                     }
                     return false;
                 });
-        temp = Math.max(temp, 100 * (1.5 / (coof + 1)));
+        coof = (1.5 / (coof + 1));
+        if (coof > 0.0001) {
+            temp = Math.max(temp, 100 * coof);
+        }
         return temp;
     }
 
@@ -127,7 +131,10 @@ public class editTemp {
         double coof = RoomExitFinder.findExitSteps(location, 5,
                 l -> l.getBlock().getType().isAir(),
                 l -> l.getBlock().getType() == Material.LAVA);
-        temp = Math.max(temp, 200 * (1 / (coof + 1)));
+        coof = (1 / (coof + 1));
+        if (coof > 0.0001) {
+            temp = Math.max(temp, 200 *coof);
+        }
         return temp;
     }
 
@@ -135,7 +142,10 @@ public class editTemp {
         double coof = RoomExitFinder.findExitSteps(location, 3,
                 l -> l.getBlock().getType().isAir(),
                 l -> l.getBlock().getType() == Material.TORCH);
-        temp = Math.max(temp, 5 * (1 / (coof + 1)));
+        coof = (1 / (coof + 1));
+        if (coof > 0.0001) {
+            temp = Math.max(temp, 5 * coof);
+        }
         return temp;
     }
 

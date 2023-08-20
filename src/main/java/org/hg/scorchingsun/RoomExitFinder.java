@@ -23,8 +23,9 @@ public class RoomExitFinder extends JavaPlugin {
         Set<Location> visited = new HashSet<>();
         Stack<Location> stack = new Stack<>();
         stack.push(startLocation);
-        int steps = 0;
+        int steps = -1;
         while (!stack.isEmpty() && steps < MAX_DEPTH) {
+            steps++;
             for (Location location: (Stack<Location>) stack.clone()){
                 if (isExit.apply(location)){
                     return steps;
@@ -33,7 +34,6 @@ public class RoomExitFinder extends JavaPlugin {
                 stack.remove(location);
                 addBlocksAround(location, stack, visited, isWay, isExit);
             }
-            steps++;
         }
 
         return 9999999;
