@@ -1,13 +1,14 @@
 package org.hg.scorchingsun.process;
 
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Furnace;
 import org.bukkit.block.Smoker;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.hg.scorchingsun.RoomExitFinder;
+import org.hg.scorchingsun.enchants.HeatAccumulationEnchantment;
+import org.hg.scorchingsun.enchants.HeatDissipationEnchantment;
 
 public class editTemp {
     public static double biomeTemp(Location location) {
@@ -93,14 +94,27 @@ public class editTemp {
     public static double armorEffectTemp(Player player, double temp) {
         int i = 0;
         for (ItemStack armorPiece : player.getInventory().getArmorContents()) {
-            if (armorPiece != null && armorPiece.getType() != null && (armorPiece.getType() == Material.LEATHER_HELMET ||
+            if (armorPiece == null || armorPiece.getType() == null){
+                continue;
+            }
+            if (armorPiece.getType() == Material.LEATHER_HELMET ||
                     armorPiece.getType() == Material.LEATHER_CHESTPLATE ||
                     armorPiece.getType() == Material.LEATHER_LEGGINGS ||
-                    armorPiece.getType() == Material.LEATHER_BOOTS)) {
-                i++;
+                    armorPiece.getType() == Material.LEATHER_BOOTS) {
+                i+=5;
+            }
+            if (armorPiece.getEnchantments()!=null){
+                if (armorPiece.getEnchantments().containsKey(Enchantment.getByKey(NamespacedKey.minecraft(HeatAccumulationEnchantment.getEchName())))){
+                    int level = armorPiece.getEnchantmentLevel(Enchantment.getByKey(NamespacedKey.minecraft(HeatAccumulationEnchantment.getEchName())));
+                    i+=5*level;
+                }
+                if (armorPiece.getEnchantments().containsKey(Enchantment.getByKey(NamespacedKey.minecraft(HeatDissipationEnchantment.getEchName())))){
+                    int level = armorPiece.getEnchantmentLevel(Enchantment.getByKey(NamespacedKey.minecraft(HeatDissipationEnchantment.getEchName())));
+                    i-=5*level;
+                }
             }
         }
-        temp += 5 * i;
+        temp += i;
         return temp;
     }
 
@@ -109,6 +123,13 @@ public class editTemp {
                 l -> l.getBlock().getType().isAir(),
                 l -> l.getBlock().getType() == Material.LAVA);
         temp = Math.max(temp, 200 * (1 / (coof + 1)));
+        return temp;
+    }
+    public static double torchTemp(Location location, double temp){
+        double coof = RoomExitFinder.findExitSteps(location, 3,
+                l -> l.getBlock().getType().isAir(),
+                l -> l.getBlock().getType() == Material.TORCH);
+        temp = Math.max(temp, 5 * (1 / (coof + 1)));
         return temp;
     }
 }

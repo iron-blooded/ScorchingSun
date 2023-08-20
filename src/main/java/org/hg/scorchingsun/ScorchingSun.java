@@ -1,8 +1,11 @@
 package org.hg.scorchingsun;
 
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Furnace;
 import org.bukkit.block.Smoker;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,8 +16,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.hg.scorchingsun.enchants.*;
 import org.hg.scorchingsun.process.editTemp;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 
 public final class ScorchingSun extends JavaPlugin implements Listener {
@@ -28,8 +33,17 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
+        try {
+            Field f = Enchantment.class.getDeclaredField("acceptingNew");
+            f.setAccessible(true);
+            f.set(null, true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        HeatAccumulationEnchantment.registerEnchantment(this);
+        HeatDissipationEnchantment.registerEnchantment(this);
+        Bukkit.getPluginManager().registerEvents(new listenerUpdateEnchant(), this);
         Bukkit.getPluginManager().registerEvents(this, this);
-
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -59,19 +73,6 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
         }
         temp_players.put(player.getName(), final_temp);
     }
-
-    /*
-    private void addTemp(Player player, double coof){
-        double temp = getTemp(player);
-        temp += Math.sqrt(temp*max_temp/((20*60*6)/(max_temp/crit_temp)))*coof;
-        temp = Math.min(temp, max_temp);
-        temp_players.put(player.getName(), temp);
-    }
-    private void minusTemp(Player player){
-        double temp = getTemp(player);
-        minusTemp(player, Math.sqrt(temp*min_temp/((20*60*3)/(max_temp/crit_temp))));
-    }
-     */
     private void minusTemp(Player player, double minus) {
         double temp = getTemp(player);
         temp -= minus;
@@ -94,7 +95,7 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
     }
 
     private void display(Player player, String text) {
-//        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ChatColor.YELLOW + text));
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ChatColor.YELLOW + text));
     }
 
     public void process(Player player) {
@@ -102,21 +103,23 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
             return;
         }
         World world = player.getWorld();
+        Location location = player.getLocation();
         double need_temp = 0;
-        need_temp += editTemp.biomeTemp(player.getLocation());
-        need_temp += editTemp.sunTemp(player.getLocation());
-        need_temp = editTemp.hazerTemp(player.getLocation(), need_temp);
+        need_temp += editTemp.biomeTemp(location);
+        need_temp += editTemp.sunTemp(location);
+        need_temp = editTemp.hazerTemp(location, need_temp);
         if (need_temp == 0){
-            need_temp = editTemp.waterTemp(player.getLocation(), need_temp);
+            need_temp = editTemp.waterTemp(location, need_temp);
         }
-        need_temp = editTemp.powderSnowTemp(player.getLocation(), need_temp);
-        need_temp = editTemp.fireTemp(player.getLocation(), need_temp);
+        need_temp = editTemp.powderSnowTemp(location, need_temp);
+        need_temp = editTemp.fireTemp(location, need_temp);
         need_temp = editTemp.armorEffectTemp(player, need_temp);
-        need_temp = editTemp.lavaTemp(player.getLocation(), need_temp);
+        need_temp = editTemp.lavaTemp(location, need_temp);
         need_temp = Math.min(max_temp, need_temp);
         need_temp = Math.max(min_temp, need_temp);
+        need_temp = editTemp.torchTemp(location, need_temp);
         finalTemp(player, need_temp);
-        display(player, getTemp(player, true) + "°");
+        display(player, need_temp + "°");
         if (getTemp(player) >= crit_firing_temp) {
             player.setFireTicks(20 * 3);
         } else if (getTemp(player) < crit_frizing_temp && player.getFreezeTicks() < 20*4) {
@@ -143,11 +146,14 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
     }
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        temp_players.put(((Player) event.getEntity()).getName(), comfort_temp);
+        temp_players.put(event.getEntity().getName(), comfort_temp);
     }
 
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        try {
+            Enchantment.stopAcceptingRegistrations();
+        }catch (Exception e){}
     }
 }
