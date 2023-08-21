@@ -1,8 +1,8 @@
 package org.hg.scorchingsun.process;
 
 import org.bukkit.*;
-import org.bukkit.block.Furnace;
-import org.bukkit.block.Smoker;
+import org.bukkit.block.*;
+import org.bukkit.block.data.type.Campfire;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -15,6 +15,32 @@ import java.util.Set;
 import java.util.function.BinaryOperator;
 
 public class editTemp {
+    public static class calculate {
+        public BinaryOperator<Double> math;
+        public double number;
+        public double priority;
+
+        public calculate(double number, BinaryOperator<Double> math) {
+            this.number = number;
+            this.math = math;
+            BinaryOperator<Double> sum = (a, b) -> Double.sum(a, b);
+            BinaryOperator<Double> max = (a, b) -> Math.max(a, b);
+            BinaryOperator<Double> min = (a, b) -> Math.min(a, b);
+            if (math.equals(sum)) {
+                priority = 0;
+            } else if (math.equals(min)) {
+                priority = 1;
+            } else if (math.equals(max)) {
+                priority = 2;
+            }
+        }
+
+        public calculate(double number, BinaryOperator<Double> math, double priority) {
+            this.number = number;
+            this.math = math;
+            this.priority = priority;
+        }
+    }
     public static calculate biomeTemp(Location location) {
         World world = location.getWorld();
         double biome_temp = world.getTemperature(location.getBlockX(), location.getBlockY(), location.getBlockZ());
@@ -87,8 +113,8 @@ public class editTemp {
                     if (l.getBlock().getType() == Material.FIRE) {
                         return true;
                     }
-                    if (l.getBlock().getType().name().contains("CAMPFIRE")) {
-                        return true;
+                    if (l.getBlock().getType() == Material.CAMPFIRE) {
+                        return isCampfireLit(l.getBlock());
                     }
                     if (l.getBlock().getType() == Material.FURNACE || l.getBlock().getType() == Material.BLAST_FURNACE || l.getBlock().getType() == Material.SMOKER) {
                         if (l.getBlock().getState() instanceof Furnace) {
@@ -201,7 +227,7 @@ public class editTemp {
     public static calculate soulCampfireTemp(Location location) {
         double coof = RoomExitFinder.findExitSteps(location, 3,
                 l -> l.getBlock().getType().isAir(),
-                l -> l.getBlock().getType() == Material.SOUL_CAMPFIRE);
+                l -> l.getBlock().getType() == Material.SOUL_CAMPFIRE && isCampfireLit(l.getBlock()));
         coof = (1 / (coof + 1));
         if (coof > 0.0001) {
             return new calculate(-15 * coof, Double::sum);
@@ -233,31 +259,17 @@ public class editTemp {
         }
         return new calculate(0, Double::sum);
     }
-
-    public static class calculate {
-        public BinaryOperator<Double> math;
-        public double number;
-        public double priority;
-
-        public calculate(double number, BinaryOperator<Double> math) {
-            this.number = number;
-            this.math = math;
-            BinaryOperator<Double> sum = (a, b) -> Double.sum(a, b);
-            BinaryOperator<Double> max = (a, b) -> Math.max(a, b);
-            BinaryOperator<Double> min = (a, b) -> Math.min(a, b);
-            if (math.equals(sum)) {
-                priority = 0;
-            } else if (math.equals(min)) {
-                priority = 1;
-            } else if (math.equals(max)) {
-                priority = 2;
+    public static boolean isCampfireLit(Block campfireBlock) {
+        // Проверяем, является ли блок костром
+        if (campfireBlock.getType() == Material.CAMPFIRE || campfireBlock.getType() == Material.SOUL_CAMPFIRE) {
+            BlockState state = campfireBlock.getState();
+            // Проверяем, является ли состояние костра Campfire
+            if (state.getBlockData() instanceof Campfire) {
+                Campfire campfire = (Campfire) state.getBlockData();
+                return campfire.isLit(); // Возвращает true, если костер зажжен
             }
         }
 
-        public calculate(double number, BinaryOperator<Double> math, double priority) {
-            this.number = number;
-            this.math = math;
-            this.priority = priority;
-        }
+        return false; // Блок не является костром или состояние не Campfire
     }
 }
