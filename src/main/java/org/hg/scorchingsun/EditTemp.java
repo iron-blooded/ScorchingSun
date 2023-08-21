@@ -55,8 +55,7 @@ public class EditTemp {
         if (player.getGameMode() != GameMode.SURVIVAL) {
             return;
         }
-        double ambient_temp = ambientTemp(player);
-        double temp_player = finalTemp(getTemp(player), ambient_temp);
+        double temp_player = finalTemp(getTemp(player), ambientTemp(player));
         if (Rock.isGives(player)){
             ItemStack rock = player.getInventory().getItemInMainHand();
             double temp_rock = Rock.Lore.getTemp(rock);
@@ -66,11 +65,11 @@ public class EditTemp {
         } else if (Rock.isAccumulated(player)) {
             ItemStack rock = player.getInventory().getItemInOffHand();
             double temp_rock = Rock.Lore.getTemp(rock);
-            temp_rock = finalTemp(temp_rock, ambient_temp);
+            temp_rock = finalTemp(temp_rock, ambientTemp(player.getLocation()));
             Rock.Lore.setTemp(rock, temp_rock);
         }
         setTemp(player, temp_player);
-        display(player, round(temp_player) + "°");
+//        display(player, round(temp_player) + "°");
         if (getTemp(player) >= crit_firing_temp) {
             player.setFireTicks(20 * 3);
         } else if (getTemp(player) < crit_frizing_temp && player.getFreezeTicks() < 20 * 4) {
