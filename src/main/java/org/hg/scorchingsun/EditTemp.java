@@ -55,13 +55,19 @@ public class EditTemp {
         if (player.getGameMode() != GameMode.SURVIVAL) {
             return;
         }
-        double temp_player = finalTemp(getTemp(player), ambientTemp(player));
+        double ambient_temp = ambientTemp(player);
+        double temp_player = finalTemp(getTemp(player), ambient_temp);
         if (Rock.isGives(player)){
             ItemStack rock = player.getInventory().getItemInMainHand();
             double temp_rock = Rock.Lore.getTemp(rock);
             double final_temp_rock = finalTemp(temp_rock, temp_player);
             temp_player = finalTemp(temp_player, temp_rock);
             Rock.Lore.setTemp(rock, final_temp_rock);
+        } else if (Rock.isAccumulated(player)) {
+            ItemStack rock = player.getInventory().getItemInOffHand();
+            double temp_rock = Rock.Lore.getTemp(rock);
+            temp_rock = finalTemp(temp_rock, ambient_temp);
+            Rock.Lore.setTemp(rock, temp_rock);
         }
         setTemp(player, temp_player);
         display(player, round(temp_player) + "°");
