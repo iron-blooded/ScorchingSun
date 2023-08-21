@@ -14,7 +14,7 @@ public class Rock {
         ItemMeta itemMeta = rock.getItemMeta();
         itemMeta.setDisplayName(getName());
         rock.setItemMeta(itemMeta);
-        Lore.setTemp(rock, 0);
+        Lore.setTemp(rock, ScorchingSun.comfort_temp);
         return rock;
     }
     public static String getName(){
@@ -46,7 +46,9 @@ public class Rock {
         }
         public static void setTemp(ItemStack itemStack, double temp){
             temp = ScorchingSun.round(temp);
-            itemStack.getItemMeta().setLore(Collections.singletonList(lore + temp));
+            ItemMeta itemMeta = itemStack.getItemMeta();
+            itemMeta.setLore(Collections.singletonList(lore + temp));
+            itemStack.setItemMeta(itemMeta);
         }
         public static void addTemp(ItemStack itemStack, double temp){
             setTemp(itemStack, getTemp(itemStack)+temp);
