@@ -10,34 +10,11 @@ import org.hg.scorchingsun.RoomExitFinder;
 import org.hg.scorchingsun.enchants.HeatAccumulationEnchantment;
 import org.hg.scorchingsun.enchants.HeatDissipationEnchantment;
 
+import java.util.List;
 import java.util.Set;
 import java.util.function.BinaryOperator;
 
 public class editTemp {
-    public static class calculate{
-        public BinaryOperator<Double> math;
-        public double number;
-        public double priority;
-        public calculate(double number, BinaryOperator<Double> math){
-            this.number = number;
-            this.math= math;
-            BinaryOperator<Double> sum = (a, b) -> Double.sum(a, b);
-            BinaryOperator<Double> max = (a, b) -> Math.max(a, b);
-            BinaryOperator<Double> min = (a, b) -> Math.min(a, b);
-            if (math.equals(sum)){
-                priority = 0;
-            } else if (math.equals(min)) {
-                priority = 1;
-            } else if (math.equals(max)) {
-                priority = 2;
-            }
-        }
-        public calculate(double number, BinaryOperator<Double> math, double priority){
-            this.number = number;
-            this.math= math;
-            this.priority = priority;
-        }
-    }
     public static calculate biomeTemp(Location location) {
         World world = location.getWorld();
         double biome_temp = world.getTemperature(location.getBlockX(), location.getBlockY(), location.getBlockZ());
@@ -97,7 +74,7 @@ public class editTemp {
                 l -> l.getBlock().getType().isAir(),
                 l -> l.getBlock().getType() == Material.POWDER_SNOW || l.getBlock().getType().name().contains("ICE"));
         coof = (1 / (coof + 1));
-        if (coof > 0.0001){
+        if (coof > 0.0001) {
             return new calculate(-5 * coof, Math::min);
         }
         return new calculate(0, Double::sum);
@@ -151,6 +128,19 @@ public class editTemp {
                     i -= 5 * level;
                 }
             }
+            if (armorPiece.getItemMeta() != null && armorPiece.getItemMeta().getLore() != null){
+                for (String str: armorPiece.getItemMeta().getLore()){
+                    if (str != null && str.contains(ChatColor.COLOR_CHAR+"")){
+                        try {
+                            if (str.contains("Вентеляционная проставка, ур. ")) {
+                                i -= Integer.parseInt(str.split("ур. ")[1]) * 5;
+                            } else if (str.contains("Меховая подкладка, ур. ")) {
+                                i += Integer.parseInt(str.split("ур. ")[1]) * 5;
+                            }
+                        } catch (Exception e){player.sendMessage("У тебя на броне неверный уровень модификатора температуры!");}
+                    }
+                }
+            }
         }
         return new calculate(i, Double::sum, 10);
     }
@@ -161,7 +151,7 @@ public class editTemp {
                 l -> l.getBlock().getType() == Material.LAVA);
         coof = (1 / (coof + 1));
         if (coof > 0.0001) {
-            return new calculate(200 *coof, Math::max);
+            return new calculate(200 * coof, Math::max);
         }
         return new calculate(0, Double::sum);
     }
@@ -173,7 +163,7 @@ public class editTemp {
                 l -> l.getBlock().getType() == Material.TORCH);
         coof = (1 / (coof + 1));
         if (coof > 0.0001) {
-            temp +=  5 * coof;
+            temp += 5 * coof;
         }
         return new calculate(temp, Double::sum);
     }
@@ -207,18 +197,20 @@ public class editTemp {
         }
         return new calculate(temp, Double::sum, 10);
     }
-    public static calculate soulCampfireTemp(Location location){
+
+    public static calculate soulCampfireTemp(Location location) {
         double coof = RoomExitFinder.findExitSteps(location, 3,
                 l -> l.getBlock().getType().isAir(),
                 l -> l.getBlock().getType() == Material.SOUL_CAMPFIRE);
         coof = (1 / (coof + 1));
         if (coof > 0.0001) {
-            return new calculate(-15 *coof, Double::sum);
+            return new calculate(-15 * coof, Double::sum);
         }
         return new calculate(0, Double::sum);
     }
+
     public static calculate permPlayerTemp(Player player) {
-        return new calculate(getPermissionNumber("temperaturetrain.", player), Double::sum, 10) ;
+        return new calculate(getPermissionNumber("temperaturetrain.", player), Double::sum, 10);
     }
 
     private static int getPermissionNumber(String permission, Player player) {
@@ -230,14 +222,42 @@ public class editTemp {
         }
         return 0; // если игрок не имеет никаких пермишенов с данным префиксом
     }
-    public static calculate soulSandTemp(Location location){
+
+    public static calculate soulSandTemp(Location location) {
         double coof = RoomExitFinder.findExitSteps(location, 2,
                 l -> l.getBlock().getType().isAir(),
                 l -> l.getBlock().getType() == Material.SOUL_SAND);
         coof = (1 / (coof + 1));
         if (coof > 0.0001) {
-            return new calculate(-3 *coof, Double::sum);
+            return new calculate(-3 * coof, Double::sum);
         }
         return new calculate(0, Double::sum);
+    }
+
+    public static class calculate {
+        public BinaryOperator<Double> math;
+        public double number;
+        public double priority;
+
+        public calculate(double number, BinaryOperator<Double> math) {
+            this.number = number;
+            this.math = math;
+            BinaryOperator<Double> sum = (a, b) -> Double.sum(a, b);
+            BinaryOperator<Double> max = (a, b) -> Math.max(a, b);
+            BinaryOperator<Double> min = (a, b) -> Math.min(a, b);
+            if (math.equals(sum)) {
+                priority = 0;
+            } else if (math.equals(min)) {
+                priority = 1;
+            } else if (math.equals(max)) {
+                priority = 2;
+            }
+        }
+
+        public calculate(double number, BinaryOperator<Double> math, double priority) {
+            this.number = number;
+            this.math = math;
+            this.priority = priority;
+        }
     }
 }
