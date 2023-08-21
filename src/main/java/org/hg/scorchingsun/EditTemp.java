@@ -5,24 +5,34 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 import static org.hg.scorchingsun.ScorchingSun.*;
 
 public class EditTemp {
     public static double ambientTemp(Player player){
         Location location = player.getLocation();
+        List<editTemp.calculate> list = new ArrayList<>();
         double need_temp = 0;
-        need_temp += editTemp.biomeTemp(location);
-        need_temp -= editTemp.soulCampfireTemp(location);
-        need_temp = editTemp.iceSnowTemp(location, need_temp);
-        need_temp = editTemp.lavaTemp(location, need_temp);
-        need_temp += editTemp.sunTemp(location);
-        need_temp = editTemp.waterTemp(location, need_temp);
-        need_temp = editTemp.hazerTemp(location, need_temp);
-        need_temp = editTemp.fireTemp(location, need_temp);
-        need_temp = editTemp.torchTemp(location, need_temp);
-        need_temp = editTemp.armorEffectTemp(player, need_temp);
-        need_temp = editTemp.tagsPlayerTemp(player, need_temp);
-        need_temp = editTemp.permPlayerTemp(player, need_temp);
+        list.add(editTemp.biomeTemp(location));
+        list.add(editTemp.soulCampfireTemp(location));
+        list.add(editTemp.iceSnowTemp(location));
+        list.add(editTemp.lavaTemp(location));
+        list.add(editTemp.sunTemp(location));
+        list.add(editTemp.waterTemp(location));
+        list.add(editTemp.hazerTemp(location));
+        list.add(editTemp.fireTemp(location));
+        list.add(editTemp.torchTemp(location));
+        list.add(editTemp.armorEffectTemp(player));
+        list.add(editTemp.tagsPlayerTemp(player));
+        list.add(editTemp.permPlayerTemp(player));
+        list.add(editTemp.soulSandTemp(location));
+        list.sort(Comparator.comparingDouble(obj -> obj.priority));
+        for (editTemp.calculate calc: list){
+            need_temp = calc.math.apply(need_temp, calc.number);
+        }
         need_temp = Math.min(max_temp, need_temp);
         need_temp = Math.max(min_temp, need_temp);
         return need_temp;
