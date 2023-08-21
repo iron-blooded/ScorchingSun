@@ -73,8 +73,7 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
         return ((double) ((int) (i * 10)) / 10);
     }
 
-    public static void finalTemp(Player player, double temp) {
-        double current_temp = getTemp(player);
+    public static double finalTemp(double current_temp, double temp) {
         int i = 1;
         if (temp < current_temp) {
             i = -1;
@@ -88,7 +87,7 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
         } else {
             final_temp = Math.max(min_temp, final_temp);
         }
-        temp_players.put(player.getName(), final_temp);
+        return final_temp;
     }
     public static void minusTemp(Player player, double minus) {
         double temp = getTemp(player);
@@ -96,7 +95,9 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
         temp = Math.max(temp, min_temp);
         temp_players.put(player.getName(), temp);
     }
-
+    public static void setTemp(Player player, double temp){
+        temp_players.put(player.getName(), temp);
+    }
     public static double getTemp(Player player) {
         return getTemp(player, false);
     }
