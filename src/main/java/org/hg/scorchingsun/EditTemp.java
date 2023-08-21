@@ -56,26 +56,27 @@ public class EditTemp {
             return;
         }
         double temp_player = finalTemp(getTemp(player), ambientTemp(player));
-        if (Rock.isGives(player)){
+        if (Rock.isGives(player)) {
             ItemStack rock = player.getInventory().getItemInMainHand();
             double temp_rock = Rock.Lore.getTemp(rock);
-            double final_temp_rock = finalTemp(temp_rock, temp_player);
-            temp_player = finalTemp(temp_player, temp_rock);
+            double coof = rock.getAmount();
+            double final_temp_rock = finalTemp(temp_rock, temp_player, coof);
+            temp_player = finalTemp(temp_player, temp_rock, 1/coof);
             Rock.Lore.setTemp(rock, final_temp_rock);
         } else if (Rock.isAccumulated(player)) {
             ItemStack rock = player.getInventory().getItemInOffHand();
             double temp_rock = Rock.Lore.getTemp(rock);
-            temp_rock = finalTemp(temp_rock, ambientTemp(player.getLocation()));
+            temp_rock = finalTemp(temp_rock, ambientTemp(player.getLocation()), rock.getAmount());
             Rock.Lore.setTemp(rock, temp_rock);
         }
         setTemp(player, temp_player);
 //        display(player, round(temp_player) + "°");
         if (getTemp(player) >= crit_firing_temp) {
             player.setFireTicks(20 * 3);
-        } else if (getTemp(player) < crit_frizing_temp && player.getFreezeTicks() < 20 * 4) {
-            player.setFreezeTicks(20 * 4);
         } else if (getTemp(player) < crit_frizing_temp - 20 && player.getFreezeTicks() < 20 * 10) {
             player.setFreezeTicks(20 * 10);
+        } else if (getTemp(player) < crit_frizing_temp && player.getFreezeTicks() < 20 * 4) {
+            player.setFreezeTicks(20 * 4);
         } else if (getTemp(player) >= toshnota) {
             if (Math.random() <= 0.1) {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 20 * 2, 4, false, false));
