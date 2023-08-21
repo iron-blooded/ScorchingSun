@@ -73,12 +73,12 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
         return ((double) ((int) (i * 10)) / 10);
     }
 
-    public static double finalTemp(double current_temp, double temp) {
+    public static double finalTemp(double current_temp, double ambient_temp) {
         int i = 1;
-        if (temp < current_temp) {
+        if (ambient_temp < current_temp) {
             i = -1;
         }
-        double final_temp = Math.abs(current_temp - temp);
+        double final_temp = Math.abs(current_temp - ambient_temp);
         final_temp = Math.sqrt(final_temp) / 20;
         final_temp *= i;
         final_temp = current_temp + final_temp;
