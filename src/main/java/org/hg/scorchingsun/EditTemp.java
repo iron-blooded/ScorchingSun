@@ -3,6 +3,7 @@ package org.hg.scorchingsun;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.hg.scorchingsun.process.editTemp;
@@ -54,8 +55,16 @@ public class EditTemp {
         if (player.getGameMode() != GameMode.SURVIVAL) {
             return;
         }
-        setTemp(player, finalTemp(getTemp(player), ambientTemp(player)));
-//        display(player, need_temp + "°");
+        double temp_player = finalTemp(getTemp(player), ambientTemp(player));
+        if (Rock.isGives(player)){
+            ItemStack rock = player.getInventory().getItemInMainHand();
+            double temp_rock = Rock.Lore.getTemp(rock);
+            double final_temp_rock = finalTemp(temp_rock, temp_player);
+            temp_player = finalTemp(temp_player, temp_rock);
+            Rock.Lore.setTemp(rock, final_temp_rock);
+        }
+        setTemp(player, temp_player);
+        display(player, round(temp_player) + "°");
         if (getTemp(player) >= crit_firing_temp) {
             player.setFireTicks(20 * 3);
         } else if (getTemp(player) < crit_frizing_temp && player.getFreezeTicks() < 20 * 4) {
