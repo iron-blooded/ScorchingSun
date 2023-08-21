@@ -15,7 +15,14 @@ public class EditTemp {
     public static double ambientTemp(Player player){
         Location location = player.getLocation();
         List<editTemp.calculate> list = new ArrayList<>();
-        double need_temp = 0;
+        list.add(new editTemp.calculate(ambientTemp(location), Double::sum));
+        list.add(editTemp.armorEffectTemp(player));
+        list.add(editTemp.tagsPlayerTemp(player));
+        list.add(editTemp.permPlayerTemp(player));
+        return calculate(list);
+    }
+    public static double ambientTemp(Location location){
+        List<editTemp.calculate> list = new ArrayList<>();
         list.add(editTemp.biomeTemp(location));
         list.add(editTemp.soulCampfireTemp(location));
         list.add(editTemp.iceSnowTemp(location));
@@ -25,10 +32,11 @@ public class EditTemp {
         list.add(editTemp.hazerTemp(location));
         list.add(editTemp.fireTemp(location));
         list.add(editTemp.torchTemp(location));
-        list.add(editTemp.armorEffectTemp(player));
-        list.add(editTemp.tagsPlayerTemp(player));
-        list.add(editTemp.permPlayerTemp(player));
         list.add(editTemp.soulSandTemp(location));
+        return calculate(list);
+    }
+    private static double calculate(List<editTemp.calculate> list){
+        double need_temp = 0;
         list.sort(Comparator.comparingDouble(obj -> obj.priority));
         for (editTemp.calculate calc: list){
             need_temp = calc.math.apply(need_temp, calc.number);
