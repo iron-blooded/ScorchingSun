@@ -127,7 +127,7 @@ public class editTemp {
                 });
         coof = (1 / (coof + 1));
         if (coof > 0.0001) {
-            return new calculate(100 * coof, Math::max);
+            return new calculate(100 * coof, Double::sum);
         }
         return new calculate(0, Double::sum);
     }
