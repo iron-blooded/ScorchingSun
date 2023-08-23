@@ -171,7 +171,7 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
             if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
                 display(player, "Ваша температура: " + getTemp(player, true) + "°");
             } else if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) {
-                display(player, "Финальная температура: " + round(ambientTemp(player)) + "°");
+                display(player, "Температура в округе: " + round(ambientTemp(player.getLocation())) + "°");
             }
             event.setCancelled(true);
         }
