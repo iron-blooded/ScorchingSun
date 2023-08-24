@@ -158,10 +158,10 @@ public class editTemp {
                 for (String str: armorPiece.getItemMeta().getLore()){
                     if (str != null && str.contains(ChatColor.COLOR_CHAR+"")){
                         try {
-                            if (str.contains("Вентеляционная проставка, ур. ")) {
-                                i -= Integer.parseInt(str.split("ур. ")[1]) * 5;
-                            } else if (str.contains("Меховая подкладка, ур. ")) {
-                                i += Integer.parseInt(str.split("ур. ")[1]) * 5;
+                            if (str.contains("Повышение Температуры")) {
+                                i -= Integer.parseInt(str.split("Повышение Температуры ")[1]) * 5;
+                            } else if (str.contains("Понижение Температуры")) {
+                                i += Integer.parseInt(str.split("Понижение Температуры ")[1]) * 5;
                             }
                         } catch (Exception e){player.sendMessage("У тебя на броне неверный уровень модификатора температуры!");}
                     }
