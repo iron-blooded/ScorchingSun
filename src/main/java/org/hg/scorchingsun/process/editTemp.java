@@ -64,7 +64,7 @@ public class editTemp {
                 l -> l.getBlock().getType() == Material.POWDER_SNOW || l.getBlock().getType().name().contains("ICE"));
         coof = (1 / (coof + 1));
         if (coof > 0.0001) {
-            return new calculate(-5 * coof, Math::min);
+            return new calculate(-15 * coof, Double::sum);
         }
         return new calculate(0, Double::sum);
     }
