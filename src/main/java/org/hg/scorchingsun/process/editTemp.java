@@ -20,7 +20,6 @@ public class editTemp {
     public static calculate biomeTemp(Location location) {
         World world = location.getWorld();
         double biome_temp = world.getTemperature(location.getBlockX(), location.getBlockY(), location.getBlockZ());
-        Bukkit.broadcastMessage(String.valueOf(biome_temp));
         double temp = 40 * biome_temp;
         return new calculate(temp, Double::sum);
     }
