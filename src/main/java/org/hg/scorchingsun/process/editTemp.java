@@ -1,7 +1,10 @@
 package org.hg.scorchingsun.process;
 
 import org.bukkit.*;
-import org.bukkit.block.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Furnace;
+import org.bukkit.block.Smoker;
 import org.bukkit.block.data.type.Campfire;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -10,54 +13,15 @@ import org.hg.scorchingsun.RoomExitFinder;
 import org.hg.scorchingsun.enchants.HeatAccumulationEnchantment;
 import org.hg.scorchingsun.enchants.HeatDissipationEnchantment;
 
-import java.util.List;
 import java.util.Set;
 import java.util.function.BinaryOperator;
 
 public class editTemp {
-    public static class calculate {
-        public BinaryOperator<Double> math;
-        public double number;
-        public double priority;
-
-        public calculate(double number, BinaryOperator<Double> math) {
-            this.number = number;
-            this.math = math;
-            BinaryOperator<Double> sum = (a, b) -> Double.sum(a, b);
-            BinaryOperator<Double> max = (a, b) -> Math.max(a, b);
-            BinaryOperator<Double> min = (a, b) -> Math.min(a, b);
-            if (math.equals(sum)) {
-                priority = 0;
-            } else if (math.equals(min)) {
-                priority = 1;
-            } else if (math.equals(max)) {
-                priority = 2;
-            }
-        }
-
-        public calculate(double number, BinaryOperator<Double> math, double priority) {
-            this.number = number;
-            this.math = math;
-            this.priority = priority;
-        }
-    }
     public static calculate biomeTemp(Location location) {
         World world = location.getWorld();
         double biome_temp = world.getTemperature(location.getBlockX(), location.getBlockY(), location.getBlockZ());
-        double temp;
-        if (biome_temp <= -1) {
-            //Температура пиздецки холодных биомов
-            temp = -40;
-        } else if (biome_temp <= 0) {
-            //Температура просто холодных биомов
-            temp = -15;
-        } else if (biome_temp < 1) {
-            //Температура теплых биомов
-            temp = 15;
-        } else {
-            //Температура пиздецки жарких биомов
-            temp = 35;
-        }
+        Bukkit.broadcastMessage(String.valueOf(biome_temp));
+        double temp = 40 * biome_temp;
         return new calculate(temp, Double::sum);
     }
 
@@ -154,16 +118,18 @@ public class editTemp {
                     i -= 5 * level;
                 }
             }
-            if (armorPiece.getItemMeta() != null && armorPiece.getItemMeta().getLore() != null){
-                for (String str: armorPiece.getItemMeta().getLore()){
-                    if (str != null && str.contains(ChatColor.COLOR_CHAR+"")){
+            if (armorPiece.getItemMeta() != null && armorPiece.getItemMeta().getLore() != null) {
+                for (String str : armorPiece.getItemMeta().getLore()) {
+                    if (str != null && str.contains(ChatColor.COLOR_CHAR + "")) {
                         try {
                             if (str.contains("Повышение Температуры")) {
                                 i -= Integer.parseInt(str.split("Повышение Температуры ")[1]) * 5;
                             } else if (str.contains("Понижение Температуры")) {
                                 i += Integer.parseInt(str.split("Понижение Температуры ")[1]) * 5;
                             }
-                        } catch (Exception e){player.sendMessage("У тебя на броне неверный уровень модификатора температуры!");}
+                        } catch (Exception e) {
+                            player.sendMessage("У тебя на броне неверный уровень модификатора температуры!");
+                        }
                     }
                 }
             }
@@ -259,17 +225,44 @@ public class editTemp {
         }
         return new calculate(0, Double::sum);
     }
+
     public static boolean isCampfireLit(Block campfireBlock) {
         // Проверяем, является ли блок костром
         if (campfireBlock.getType() == Material.CAMPFIRE || campfireBlock.getType() == Material.SOUL_CAMPFIRE) {
             BlockState state = campfireBlock.getState();
             // Проверяем, является ли состояние костра Campfire
-            if (state.getBlockData() instanceof Campfire) {
-                Campfire campfire = (Campfire) state.getBlockData();
+            if (state.getBlockData() instanceof Campfire campfire) {
                 return campfire.isLit(); // Возвращает true, если костер зажжен
             }
         }
 
         return false; // Блок не является костром или состояние не Campfire
+    }
+
+    public static class calculate {
+        public BinaryOperator<Double> math;
+        public double number;
+        public double priority;
+
+        public calculate(double number, BinaryOperator<Double> math) {
+            this.number = number;
+            this.math = math;
+            BinaryOperator<Double> sum = (a, b) -> Double.sum(a, b);
+            BinaryOperator<Double> max = (a, b) -> Math.max(a, b);
+            BinaryOperator<Double> min = (a, b) -> Math.min(a, b);
+            if (math.equals(sum)) {
+                priority = 0;
+            } else if (math.equals(min)) {
+                priority = 1;
+            } else if (math.equals(max)) {
+                priority = 2;
+            }
+        }
+
+        public calculate(double number, BinaryOperator<Double> math, double priority) {
+            this.number = number;
+            this.math = math;
+            this.priority = priority;
+        }
     }
 }
