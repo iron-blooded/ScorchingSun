@@ -6,11 +6,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -174,6 +176,14 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
                 display(player, "Температура в округе: " + round(ambientTemp(player.getLocation())) + "°");
             }
             event.setCancelled(true);
+        }
+    }
+    @EventHandler
+    public void onBreakBlock(BlockBreakEvent event){
+        Player player = event.getPlayer();
+        Block block = event.getBlock(); // Получаем сломанный блок из события
+        if (block.getType() == Material.SNOW_BLOCK || block.getType().name().contains("ICE")){
+            minusTemp(player, 5);
         }
     }
 }
