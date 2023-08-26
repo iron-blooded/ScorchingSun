@@ -20,7 +20,7 @@ public class editTemp {
     public static calculate biomeTemp(Location location) {
         World world = location.getWorld();
         double biome_temp = world.getTemperature(location.getBlockX(), location.getBlockY(), location.getBlockZ());
-        double temp = 40 * biome_temp;
+        double temp = 40 * biome_temp - 15;
         return new calculate(temp, Double::sum);
     }
 
