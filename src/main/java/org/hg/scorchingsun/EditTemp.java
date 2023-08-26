@@ -1,5 +1,6 @@
 package org.hg.scorchingsun;
 
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -79,6 +80,9 @@ public class EditTemp {
             player.setFreezeTicks(20 * 4);
         } else if (getTemp(player) >= toshnota) {
             if (Math.random() <= 0.1) {
+                if (Math.random() <= 0.1) {
+                    player.sendMessage(ChatColor.RED+"Вам жарко!");
+                }
                 player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 20 * 2, 4, false, false));
                 player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20 * 2, 4, false, false));
             }
