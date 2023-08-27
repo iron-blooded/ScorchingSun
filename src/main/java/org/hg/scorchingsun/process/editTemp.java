@@ -61,7 +61,7 @@ public class editTemp {
     public static calculate iceSnowTemp(Location location) {
         double coof = RoomExitFinder.findExitSteps(location, 3,
                 l -> l.getBlock().getType().isAir(),
-                l -> l.getBlock().getType() == Material.POWDER_SNOW || l.getBlock().getType().name().contains("ICE"));
+                l -> l.getBlock().getType() == Material.POWDER_SNOW || l.getBlock().getType() == Material.SNOW || l.getBlock().getType().name().contains("ICE"));
         coof = (1 / (coof + 1));
         if (coof > 0.0001) {
             return new calculate(-15 * coof, Double::sum);
