@@ -26,22 +26,34 @@ public class editTemp {
 
     public static calculate sunTemp(Location location) {
         World world = location.getWorld();
+        double time = world.getTime();
+        long zahod_1 = 12000; // заход
+        long zahod_2 = 14000; // заход
+        long voshod_1 = 22000; // восход
+        long voshod_2 = 23999; // восход
         double temp = 0;
-        if (world.getTime() < 12000 && !world.hasStorm() && !world.isThundering()) {
+        double factor = 0;
+        if (time < zahod_1) {
+            factor = 1;
+        } else if (time > voshod_2) {
+            factor = 0;
+        } else if (time > zahod_1 && time < zahod_2) {
+            factor = 1- ((time - zahod_1) / (zahod_2 - zahod_1));
+        } else if (time > voshod_1 && time < voshod_2) {
+            factor = (time - voshod_1) / (voshod_2 - voshod_1);
+        }
+        if (!world.hasStorm() && !world.isThundering()) {
             // Температура солнца
-            double coof = RoomExitFinder.findExitSteps(location, 5,
-                    l -> l.getBlock().getType().isAir(),
-                    l -> l.getWorld().getHighestBlockYAt(l) <= l.getY());
+            double coof = RoomExitFinder.findExitSteps(location, 5, l -> l.getBlock().getType().isAir(), l -> l.getWorld().getHighestBlockYAt(l) <= l.getY());
             temp = 15 * (1 / (coof + 1));
         }
+        temp *= factor;
         return new calculate(temp, Double::sum);
     }
 
     public static calculate hazerTemp(Location location) {
         if (location.getBlock().getType() == Material.WATER || location.getBlock().getType() == Material.BUBBLE_COLUMN) {
-            double coof = RoomExitFinder.findExitSteps(location, 4,
-                    l -> (l.getBlock().getType() == Material.WATER || l.getBlock().getType() == Material.BUBBLE_COLUMN),
-                    l -> l.getBlock().getType() == Material.MAGMA_BLOCK || l.getBlock().getType() == Material.BUBBLE_COLUMN);
+            double coof = RoomExitFinder.findExitSteps(location, 4, l -> (l.getBlock().getType() == Material.WATER || l.getBlock().getType() == Material.BUBBLE_COLUMN), l -> l.getBlock().getType() == Material.MAGMA_BLOCK || l.getBlock().getType() == Material.BUBBLE_COLUMN);
             if (coof >= 0 && coof <= 1000) {
                 //Температура гейзера
                 return new calculate(100 * (1 / (coof + 1)), Math::max);
@@ -59,9 +71,7 @@ public class editTemp {
     }
 
     public static calculate iceSnowTemp(Location location) {
-        double coof = RoomExitFinder.findExitSteps(location, 3,
-                l -> l.getBlock().getType().isAir(),
-                l -> l.getBlock().getType() == Material.POWDER_SNOW || l.getBlock().getType() == Material.SNOW || l.getBlock().getType().name().contains("ICE"));
+        double coof = RoomExitFinder.findExitSteps(location, 3, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType() == Material.POWDER_SNOW || l.getBlock().getType() == Material.SNOW || l.getBlock().getType().name().contains("ICE"));
         coof = (1 / (coof + 1));
         if (coof > 0.0001) {
             return new calculate(-15 * coof, Double::sum);
@@ -70,24 +80,22 @@ public class editTemp {
     }
 
     public static calculate fireTemp(Location location) {
-        double coof = RoomExitFinder.findExitSteps(location, 4,
-                l -> l.getBlock().getType().isAir(),
-                l -> {
-                    if (l.getBlock().getType() == Material.FIRE) {
-                        return true;
-                    }
-                    if (l.getBlock().getType() == Material.CAMPFIRE) {
-                        return isCampfireLit(l.getBlock());
-                    }
-                    if (l.getBlock().getType() == Material.FURNACE || l.getBlock().getType() == Material.BLAST_FURNACE || l.getBlock().getType() == Material.SMOKER) {
-                        if (l.getBlock().getState() instanceof Furnace) {
-                            return ((Furnace) l.getBlock().getState()).getCookTime() > 0;
-                        } else if (l.getBlock().getState() instanceof Smoker) {
-                            return ((Smoker) l.getBlock().getState()).getCookTime() > 0;
-                        }
-                    }
-                    return false;
-                });
+        double coof = RoomExitFinder.findExitSteps(location, 4, l -> l.getBlock().getType().isAir(), l -> {
+            if (l.getBlock().getType() == Material.FIRE) {
+                return true;
+            }
+            if (l.getBlock().getType() == Material.CAMPFIRE) {
+                return isCampfireLit(l.getBlock());
+            }
+            if (l.getBlock().getType() == Material.FURNACE || l.getBlock().getType() == Material.BLAST_FURNACE || l.getBlock().getType() == Material.SMOKER) {
+                if (l.getBlock().getState() instanceof Furnace) {
+                    return ((Furnace) l.getBlock().getState()).getCookTime() > 0;
+                } else if (l.getBlock().getState() instanceof Smoker) {
+                    return ((Smoker) l.getBlock().getState()).getCookTime() > 0;
+                }
+            }
+            return false;
+        });
         coof = (1 / (coof + 1));
         if (coof > 0.0001) {
             return new calculate(100 * coof, Double::sum);
@@ -101,10 +109,7 @@ public class editTemp {
             if (armorPiece == null || armorPiece.getType() == null) {
                 continue;
             }
-            if (armorPiece.getType() == Material.LEATHER_HELMET ||
-                    armorPiece.getType() == Material.LEATHER_CHESTPLATE ||
-                    armorPiece.getType() == Material.LEATHER_LEGGINGS ||
-                    armorPiece.getType() == Material.LEATHER_BOOTS) {
+            if (armorPiece.getType() == Material.LEATHER_HELMET || armorPiece.getType() == Material.LEATHER_CHESTPLATE || armorPiece.getType() == Material.LEATHER_LEGGINGS || armorPiece.getType() == Material.LEATHER_BOOTS) {
                 i += 5;
             }
             if (armorPiece.getEnchantments() != null) {
@@ -137,9 +142,7 @@ public class editTemp {
     }
 
     public static calculate lavaTemp(Location location) {
-        double coof = RoomExitFinder.findExitSteps(location, 5,
-                l -> l.getBlock().getType().isAir(),
-                l -> l.getBlock().getType() == Material.LAVA);
+        double coof = RoomExitFinder.findExitSteps(location, 5, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType() == Material.LAVA);
         coof = (1 / (coof + 1));
         if (coof > 0.0001) {
             return new calculate(200 * coof, Math::max);
@@ -149,9 +152,7 @@ public class editTemp {
 
     public static calculate torchTemp(Location location) {
         double temp = 0;
-        double coof = RoomExitFinder.findExitSteps(location, 3,
-                l -> l.getBlock().getType().isAir(),
-                l -> l.getBlock().getType() == Material.TORCH);
+        double coof = RoomExitFinder.findExitSteps(location, 3, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType() == Material.TORCH);
         coof = (1 / (coof + 1));
         if (coof > 0.0001) {
             temp += 5 * coof;
@@ -190,9 +191,7 @@ public class editTemp {
     }
 
     public static calculate soulCampfireTemp(Location location) {
-        double coof = RoomExitFinder.findExitSteps(location, 3,
-                l -> l.getBlock().getType().isAir(),
-                l -> l.getBlock().getType() == Material.SOUL_CAMPFIRE && isCampfireLit(l.getBlock()));
+        double coof = RoomExitFinder.findExitSteps(location, 3, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType() == Material.SOUL_CAMPFIRE && isCampfireLit(l.getBlock()));
         coof = (1 / (coof + 1));
         if (coof > 0.0001) {
             return new calculate(-15 * coof, Double::sum);
@@ -215,9 +214,7 @@ public class editTemp {
     }
 
     public static calculate soulSandTemp(Location location) {
-        double coof = RoomExitFinder.findExitSteps(location, 2,
-                l -> l.getBlock().getType().isAir(),
-                l -> l.getBlock().getType() == Material.SOUL_SAND);
+        double coof = RoomExitFinder.findExitSteps(location, 2, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType() == Material.SOUL_SAND);
         coof = (1 / (coof + 1));
         if (coof > 0.0001) {
             return new calculate(-3 * coof, Double::sum);
