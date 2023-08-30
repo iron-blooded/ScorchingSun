@@ -107,6 +107,7 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
         HeatDissipationEnchantment.registerEnchantment(this);
         Bukkit.getPluginManager().registerEvents(new listenerUpdateEnchant(), this);
         Bukkit.getPluginManager().registerEvents(this, this);
+        Bukkit.getPluginManager().registerEvents(new org.hg.scorchingsun.events.disableSpawn(), this);
         new BukkitRunnable() {
             @Override
             public void run() {
