@@ -36,6 +36,7 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
     public static double crit_firing_temp = 100.0;
     public static double toshnota = 50.0;
     public static double crit_frizing_temp = 0.0;
+    public static double crit_frizing_damage_temp = -30;
     public static double comfort_temp = 36.6;
 
     public static double round(double i) {

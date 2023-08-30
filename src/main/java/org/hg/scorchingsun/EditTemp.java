@@ -75,7 +75,7 @@ public class EditTemp {
 //        display(player, round(temp_player) + "°");
         if (getTemp(player) >= crit_firing_temp) {
             player.setFireTicks(20 * 3);
-        } else if (getTemp(player) < crit_frizing_temp - 20 && player.getFreezeTicks() < 20 * 10) {
+        } else if (getTemp(player) < crit_frizing_damage_temp && player.getFreezeTicks() < 20 * 10) {
             player.setFreezeTicks(20 * 10);
         } else if (getTemp(player) < crit_frizing_temp && player.getFreezeTicks() < 20 * 4) {
             player.setFreezeTicks(20 * 4);
