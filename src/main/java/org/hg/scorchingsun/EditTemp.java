@@ -61,15 +61,18 @@ public class EditTemp {
         if (Rock.isGives(player)) {
             ItemStack rock = player.getInventory().getItemInMainHand();
             double temp_rock = Rock.Lore.getTemp(rock);
-            double coof = rock.getAmount();
-            double final_temp_rock = finalTemp(temp_rock, temp_player, coof);
-            temp_player = finalTemp(temp_player, temp_rock, 1/coof);
-            Rock.Lore.setTemp(rock, final_temp_rock);
+            if (rock.getAmount() == 1) {
+                double final_temp_rock = finalTemp(temp_rock, temp_player);
+                temp_player = finalTemp(temp_player, temp_rock);
+                Rock.Lore.setTemp(rock, final_temp_rock);
+            }
         } else if (Rock.isAccumulated(player)) {
             ItemStack rock = player.getInventory().getItemInOffHand();
-            double temp_rock = Rock.Lore.getTemp(rock);
-            temp_rock = finalTemp(temp_rock, ambientTemp(player.getLocation()), rock.getAmount());
-            Rock.Lore.setTemp(rock, temp_rock);
+            if (rock.getAmount() == 1) {
+                double temp_rock = Rock.Lore.getTemp(rock);
+                temp_rock = finalTemp(temp_rock, ambientTemp(player.getLocation()));
+                Rock.Lore.setTemp(rock, temp_rock);
+            }
         }
         setTemp(player, temp_player);
 //        display(player, round(temp_player) + "°");
