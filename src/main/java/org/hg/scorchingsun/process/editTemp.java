@@ -38,7 +38,7 @@ public class editTemp {
         } else if (time > voshod_2) {
             factor = 0;
         } else if (time > zahod_1 && time < zahod_2) {
-            factor = 1- ((time - zahod_1) / (zahod_2 - zahod_1));
+            factor = 1 - ((time - zahod_1) / (zahod_2 - zahod_1));
         } else if (time > voshod_1 && time < voshod_2) {
             factor = (time - voshod_1) / (voshod_2 - voshod_1);
         }
@@ -218,6 +218,15 @@ public class editTemp {
         coof = (1 / (coof + 1));
         if (coof > 0.0001) {
             return new calculate(-3 * coof, Double::sum);
+        }
+        return new calculate(0, Double::sum);
+    }
+
+    public static calculate bed(Location location) {
+        double coof = RoomExitFinder.findExitSteps(location, 1, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType().name().contains("_BED"));
+        coof = (1 / (coof + 1));
+        if (coof > 0.0001) {
+            return new calculate(5 * coof, Math::max);
         }
         return new calculate(0, Double::sum);
     }

@@ -38,6 +38,7 @@ public class EditTemp {
         list.add(editTemp.fireTemp(location));
         list.add(editTemp.torchTemp(location));
         list.add(editTemp.soulSandTemp(location));
+        list.add(editTemp.bed(location));
         return calculate(list);
     }
 
