@@ -13,6 +13,7 @@ import org.hg.scorchingsun.RoomExitFinder;
 import org.hg.scorchingsun.enchants.HeatAccumulationEnchantment;
 import org.hg.scorchingsun.enchants.HeatDissipationEnchantment;
 
+import java.util.List;
 import java.util.Set;
 import java.util.function.BinaryOperator;
 
@@ -22,6 +23,23 @@ public class editTemp {
         double biome_temp = world.getTemperature(location.getBlockX(), location.getBlockY(), location.getBlockZ());
         double temp = 40 * biome_temp - 15;
         return new calculate(temp, Double::sum);
+    }
+
+    private static double getCoof(List<Integer> list, boolean isOne) {
+        double result = 0;
+        if (isOne && list != null && !list.isEmpty()) {
+            return 1 / ((double) list.get(0));
+        }
+        if (list != null && !list.isEmpty()) {
+            for (int i : list) {
+                result += 1 / ((double) i);
+            }
+        }
+        return result;
+    }
+
+    private static double getCoof(List<Integer> list) {
+        return getCoof(list, false);
     }
 
     public static calculate sunTemp(Location location) {
@@ -44,8 +62,7 @@ public class editTemp {
         }
         if (!world.hasStorm() && !world.isThundering()) {
             // Температура солнца
-            double coof = RoomExitFinder.findExitSteps(location, 5, l -> l.getBlock().getType().isAir(), l -> l.getWorld().getHighestBlockYAt(l) <= l.getY());
-            temp = 15 * (1 / (coof + 1));
+            temp = 15 * getCoof(RoomExitFinder.findExitSteps(location, 5, l -> l.getBlock().getType().isAir(), l -> l.getWorld().getHighestBlockYAt(l) <= l.getY()), true);
         }
         temp *= factor;
         return new calculate(temp, Double::sum);
@@ -53,10 +70,10 @@ public class editTemp {
 
     public static calculate hazerTemp(Location location) {
         if (location.getBlock().getType() == Material.WATER || location.getBlock().getType() == Material.BUBBLE_COLUMN) {
-            double coof = RoomExitFinder.findExitSteps(location, 4, l -> (l.getBlock().getType() == Material.WATER || l.getBlock().getType() == Material.BUBBLE_COLUMN), l -> l.getBlock().getType() == Material.MAGMA_BLOCK || l.getBlock().getType() == Material.BUBBLE_COLUMN);
-            if (coof >= 0 && coof <= 1000) {
+            double coof = getCoof(RoomExitFinder.findExitSteps(location, 4, l -> (l.getBlock().getType() == Material.WATER || l.getBlock().getType() == Material.BUBBLE_COLUMN), l -> l.getBlock().getType() == Material.MAGMA_BLOCK || l.getBlock().getType() == Material.BUBBLE_COLUMN), true);
+            if (coof > 0) {
                 //Температура гейзера
-                return new calculate(100 * (1 / (coof + 1)), Math::max);
+                return new calculate(100 * coof, Math::max);
             }
         }
         return new calculate(0, Double::sum);
@@ -71,16 +88,12 @@ public class editTemp {
     }
 
     public static calculate iceSnowTemp(Location location) {
-        double coof = RoomExitFinder.findExitSteps(location, 3, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType() == Material.POWDER_SNOW || l.getBlock().getType() == Material.SNOW || l.getBlock().getType().name().contains("ICE"));
-        coof = (1 / (coof + 1));
-        if (coof > 0.0001) {
-            return new calculate(-15 * coof, Double::sum);
-        }
-        return new calculate(0, Double::sum);
+        double temp = -2 * getCoof(RoomExitFinder.findExitSteps(location, 3, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType().name().contains("SNOW") || l.getBlock().getType().name().contains("ICE")));
+        return new calculate(temp, Double::sum);
     }
 
     public static calculate fireTemp(Location location) {
-        double coof = RoomExitFinder.findExitSteps(location, 4, l -> l.getBlock().getType().isAir(), l -> {
+        double coof = getCoof(RoomExitFinder.findExitSteps(location, 4, l -> l.getBlock().getType().isAir(), l -> {
             if (l.getBlock().getType() == Material.FIRE) {
                 return true;
             }
@@ -95,12 +108,8 @@ public class editTemp {
                 }
             }
             return false;
-        });
-        coof = (1 / (coof + 1));
-        if (coof > 0.0001) {
-            return new calculate(100 * coof, Double::sum);
-        }
-        return new calculate(0, Double::sum);
+        }));
+        return new calculate(100 * coof, Double::sum);
     }
 
     public static calculate armorEffectTemp(Player player) {
@@ -142,22 +151,11 @@ public class editTemp {
     }
 
     public static calculate lavaTemp(Location location) {
-        double coof = RoomExitFinder.findExitSteps(location, 5, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType() == Material.LAVA);
-        coof = (1 / (coof + 1));
-        if (coof > 0.0001) {
-            return new calculate(200 * coof, Math::max);
-        }
-        return new calculate(0, Double::sum);
+        return new calculate(100 * getCoof(RoomExitFinder.findExitSteps(location, 5, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType() == Material.LAVA)), Double::sum);
     }
 
     public static calculate torchTemp(Location location) {
-        double temp = 0;
-        double coof = RoomExitFinder.findExitSteps(location, 3, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType() == Material.TORCH);
-        coof = (1 / (coof + 1));
-        if (coof > 0.0001) {
-            temp += 5 * coof;
-        }
-        return new calculate(temp, Double::sum);
+        return new calculate(5 * getCoof(RoomExitFinder.findExitSteps(location, 3, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType() == Material.TORCH)), Double::sum);
     }
 
     public static calculate tagsPlayerTemp(Player player) {
@@ -191,12 +189,7 @@ public class editTemp {
     }
 
     public static calculate soulCampfireTemp(Location location) {
-        double coof = RoomExitFinder.findExitSteps(location, 3, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType() == Material.SOUL_CAMPFIRE && isCampfireLit(l.getBlock()));
-        coof = (1 / (coof + 1));
-        if (coof > 0.0001) {
-            return new calculate(-15 * coof, Double::sum);
-        }
-        return new calculate(0, Double::sum);
+        return new calculate(-15 * getCoof(RoomExitFinder.findExitSteps(location, 3, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType() == Material.SOUL_CAMPFIRE && isCampfireLit(l.getBlock()))), Double::sum);
     }
 
     public static calculate permPlayerTemp(Player player) {
@@ -214,18 +207,12 @@ public class editTemp {
     }
 
     public static calculate soulSandTemp(Location location) {
-        double coof = RoomExitFinder.findExitSteps(location, 2, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType() == Material.SOUL_SAND);
-        coof = (1 / (coof + 1));
-        if (coof > 0.0001) {
-            return new calculate(-3 * coof, Double::sum);
-        }
-        return new calculate(0, Double::sum);
+        return new calculate(-2 * getCoof(RoomExitFinder.findExitSteps(location, 2, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType() == Material.SOUL_SAND)), Double::sum);
     }
 
     public static calculate bed(Location location) {
-        double coof = RoomExitFinder.findExitSteps(location, 1, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType().name().contains("_BED"));
-        coof = (1 / (coof + 1));
-        if (coof > 0.0001) {
+        double coof = getCoof(RoomExitFinder.findExitSteps(location, 1, l -> l.getBlock().getType().isAir(), l -> l.getBlock().getType().name().contains("_BED")),true);
+        if (coof > 0) {
             return new calculate(5 * coof, Math::max);
         }
         return new calculate(0, Double::sum);

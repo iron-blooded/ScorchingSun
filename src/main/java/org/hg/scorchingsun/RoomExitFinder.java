@@ -9,34 +9,38 @@ import org.bukkit.block.data.type.Door;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 import java.util.function.Function;
 
 public class RoomExitFinder extends JavaPlugin {
 
 //    public static final int MAX_DEPTH = 7;
 
-    public static int findExitSteps(Location startLocation, int MAX_DEPTH, Function<Location, Boolean> isWay, Function<Location, Boolean> isExit) {
+    public static List<Integer> findExitSteps(Location startLocation, int MAX_DEPTH, Function<Location, Boolean> isWay, Function<Location, Boolean> isExit) {
         World world = startLocation.getWorld();
         Set<Location> visited = new HashSet<>();
         Stack<Location> stack = new Stack<>();
         stack.push(startLocation);
-        int steps = -1;
-        while (!stack.isEmpty() && steps < MAX_DEPTH) {
+        HashMap<Location, Integer> exits = new HashMap<>();
+        int steps = 0;
+        while (!stack.isEmpty() && steps <= MAX_DEPTH) {
             steps++;
             for (Location location: (Stack<Location>) stack.clone()){
                 if (isExit.apply(location)){
-                    return steps;
+                    if (!exits.containsKey(location)) {
+                        exits.put(location, steps);
+                    }
                 }
                 visited.add(location);
                 stack.remove(location);
                 addBlocksAround(location, stack, visited, isWay, isExit);
             }
         }
-
-        return 9999999;
+        List<Integer> fin = new ArrayList<>();
+        for (Location location : exits.keySet()){
+            fin.add(exits.get(location));
+        }
+        return fin;
     }
     private static void addBlocksAround(Location location, Stack<Location> stack, Set<Location> visited, Function<Location, Boolean> isWay, Function<Location, Boolean> isExit){
         for (int x = -1; x <= 1; x+=2) {
