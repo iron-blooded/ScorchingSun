@@ -56,7 +56,7 @@ public class listenerUpdateEnchant implements Listener {
         if (event.getCurrentItem() != null) {
             updateEnchantmentLore(event.getCurrentItem());
         }
-        if (event.getClickedInventory().getStorageContents() == null){
+        if (event.getClickedInventory() == null || event.getClickedInventory().getStorageContents() == null){
             return;
         }
         for (ItemStack itemStack : event.getClickedInventory().getStorageContents()) {
