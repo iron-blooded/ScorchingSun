@@ -47,13 +47,29 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
         return finalTemp(current_temp, ambient_temp, 1);
     }
 
+    public static double finalTemp0_1(double current_temp, double level) {
+        level = Math.min(20, level);
+        level = Math.max(0, level);
+        double i = current_temp-(((current_temp-comfort_temp)/20)*level);
+        if (current_temp > comfort_temp){
+            i = Math.max(comfort_temp, i);
+        } else {
+            i = Math.min(comfort_temp, i);
+        }
+        return i;
+    }
+
     public static double finalTemp(double current_temp, double ambient_temp, double coof) {
         int i = 1;
         if (ambient_temp < current_temp) {
             i = -1;
         }
         double final_temp = Math.abs(current_temp - ambient_temp);
-        final_temp = Math.sqrt(final_temp) / (20 * coof);
+        if (coof != 0){
+            final_temp = Math.sqrt(final_temp) / (20 * coof);
+        } else {
+            final_temp = 0;
+        }
         final_temp *= i;
         final_temp = current_temp + final_temp;
         if (i > 0) {
@@ -112,7 +128,7 @@ public final class ScorchingSun extends JavaPlugin implements Listener {
             @Override
             public void run() {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (player.hasPermission("sunboy")) {
+                    if (player.hasPermission("sunboy") && player.getGameMode() == GameMode.SURVIVAL) {
                         process(player);
                     }
                 }

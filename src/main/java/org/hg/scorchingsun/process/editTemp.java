@@ -10,12 +10,15 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.hg.scorchingsun.RoomExitFinder;
+import org.hg.scorchingsun.ScorchingSun;
 import org.hg.scorchingsun.enchants.HeatAccumulationEnchantment;
 import org.hg.scorchingsun.enchants.HeatDissipationEnchantment;
 
 import java.util.List;
 import java.util.Set;
 import java.util.function.BinaryOperator;
+
+import static org.hg.scorchingsun.ScorchingSun.finalTemp0_1;
 
 public class editTemp {
     public static calculate biomeTemp(Location location) {
@@ -147,7 +150,30 @@ public class editTemp {
                 }
             }
         }
-        return new calculate(i, Double::sum, 10);
+        return new calculate(i, Double::sum, 4);
+    }
+
+    public static calculate armorNormalizateTemp(Player player) {
+        int level = 0;
+        for (ItemStack armorPiece : player.getInventory().getArmorContents()) {
+            if (armorPiece == null || armorPiece.getType() == null) {
+                continue;
+            }
+            if (armorPiece.getItemMeta() != null && armorPiece.getItemMeta().getLore() != null) {
+                for (String str : armorPiece.getItemMeta().getLore()) {
+                    if (str != null && str.contains(ChatColor.COLOR_CHAR + "")) {
+                        try {
+                            if (str.contains("Стабильность Температуры ")) {
+                                level += Integer.parseInt(str.split("Стабильность Температуры ")[1]);
+                            }
+                        } catch (Exception e) {
+                            player.sendMessage("У тебя на броне неверный уровень модификатора температуры!");
+                        }
+                    }
+                }
+            }
+        }
+        return new calculate(level, ScorchingSun::finalTemp0_1, 5);
     }
 
     public static calculate lavaTemp(Location location) {
@@ -185,7 +211,7 @@ public class editTemp {
         if (tags.contains("Cold+")) {
             temp -= 30;
         }
-        return new calculate(temp, Double::sum, 10);
+        return new calculate(temp, Double::sum, 4);
     }
 
     public static calculate soulCampfireTemp(Location location) {
@@ -193,7 +219,7 @@ public class editTemp {
     }
 
     public static calculate permPlayerTemp(Player player) {
-        return new calculate(getPermissionNumber("temperaturetrain.", player), Double::sum, 10);
+        return new calculate(getPermissionNumber("temperaturetrain.", player), Double::sum, 4);
     }
 
     private static int getPermissionNumber(String permission, Player player) {
@@ -242,12 +268,15 @@ public class editTemp {
             BinaryOperator<Double> sum = (a, b) -> Double.sum(a, b);
             BinaryOperator<Double> max = (a, b) -> Math.max(a, b);
             BinaryOperator<Double> min = (a, b) -> Math.min(a, b);
+            BinaryOperator<Double> finaltemp = (a, b) -> finalTemp0_1(a, b);
             if (math.equals(sum)) {
                 priority = 0;
             } else if (math.equals(min)) {
                 priority = 1;
             } else if (math.equals(max)) {
                 priority = 2;
+            } else if (math.equals(finaltemp)) {
+                priority = 5;
             }
         }
 

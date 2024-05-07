@@ -21,6 +21,7 @@ public class EditTemp {
         List<editTemp.calculate> list = new ArrayList<>();
         list.add(new editTemp.calculate(ambientTemp(location), Double::sum));
         list.add(editTemp.armorEffectTemp(player));
+        list.add(editTemp.armorNormalizateTemp(player));
         list.add(editTemp.tagsPlayerTemp(player));
         list.add(editTemp.permPlayerTemp(player));
         return calculate(list);
